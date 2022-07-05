@@ -1,0 +1,140 @@
+function onMessageReceive(){
+  return $.reply({
+    text :  {
+      body : "Welcome to Shawarma Arabi Restaurant. Please select the language:"
+     },
+     options : {
+       buttons : ["हिन्दी","English"] // providing options to select the language
+     }
+  }).listen({ // .listen helps us accept the text or code entered by the user
+    text : "हिन्दी",
+    handler : hindiHandler  // we call the function to whom the flow control is passed on to
+  },{
+    text : "English", 
+    handler : englishHandler  
+  },otherHandle); 
+}
+function hindiHandler() {
+  $.reply({
+    body : "Hi, I am good how are you?"
+  });
+}
+function englishHandler() {
+  $.reply({
+    text :  {
+      body : "Our Servies. Please Select the required service:"
+     },
+    options : {
+       buttons : ["New Order","Edit Order", "Order Follow Up", "Our Location", "Working Hours", "Help"]
+     }
+    
+  }).listen({
+    text : "New Order",
+    handler : neworderhandler  
+  },
+  {
+    text : "Edit Order",
+    handler : connecttoagenthandler 
+  },
+  {
+    text : "Order Follow Up",
+    handler : connecttoagenthandler
+  },
+  {
+    text : "Our Location",
+    handler : ourlocationhandler
+  },{
+    text : "Working Hours",
+    handler : workinghourshandler
+  },{
+    text : "Help",
+    handler : connecttoagenthandler
+  });
+}
+function otherHandle(){  // this function is passes when the customer enter a incorrect input
+  $.reply({
+        text: {
+            body: "Invalid Input"
+        },
+        options: {
+            buttons: ["Main Menu", "Close Chat"]
+        }
+    }).listen({
+        text: "Main Menu",
+        handler: englishHandler
+    }, {
+        code: "Close Chat",
+        handler: endHandler
+    }, otherHandle);
+}
+
+function neworderhandler(){
+  return $.reply({
+    text :  {
+      body : "New order \n \nTo return the main menu,  please send * \nTo speak with a customer service representative, please send # \n \nClick on below URL \nhttps://www.arabirestaurant.com"// Read Customer input
+     }
+     
+  }).listen({
+    text : "*",
+    handler : englishHandler  // go back to the main menu
+  },
+  {
+    text : "#",
+    handler : connecttoagenthandler
+  },otherHandle);
+}
+
+function connecttoagenthandler(){
+  $.reply({
+    text :  {
+      body : "Thank you, Customer service will contact you as soon as possible."
+     }
+     
+  });
+  $.route.to.team("online_team"); // connect the customer to the agent ; we enter the team name. 
+  
+}
+
+function ourlocationhandler()
+{
+  return $.reply({
+    text :  {
+      body : "Our Location \n \nTo return the main menu,  please send * \nTo speak with a customer service representative, please send # \n \nBneid Al-Gar \nhttps://goo.gl/maps/ZRfY8EsdbvZ4Yv957 \n \nSalmiya \nhttps://goo.gl/maps/V9FoP9fKqh7KP5Xm9 \n \nSabah Al-Salem \nhttps://goo.gl/maps/Hb1TRh8cyzXz1PYz7 \n \nMahboula \nhttps://goo.gl/maps/z2GTAKQQpYZF4CCdA \n \nShamiya \nhttps://goo.gl/maps/nUK2Q1JQRb4ChmFq9 \n \nJahra-Sulaiyel Mall \nhttps://goo.gl/maps/6ReSvUUDaeYSfdnT8"  // Read Customer input
+     }
+  }).listen({
+    text : "*",
+    handler : englishHandler //If answer is "Good"
+  },
+  {
+    text : "#",
+    handler : connecttoagenthandler
+  },otherHandle);
+}
+
+async function workinghourshandler()
+{
+  let {delivery} = await $.store.global('delivery'); // declare a variable with a fixed value in the variable set up
+  return $.reply({
+    template :  {
+    code : "xyz", // code of the template is mentioned where we can call the global variable value
+    data: {
+      deliverytemp : delivery
+    }
+    }
+  }).listen({
+    text : "*",
+    handler : englishHandler 
+  },
+  {
+    text : "#",
+    handler : connecttoagenthandler
+  },otherHandle);
+}
+function endHandler() {
+    $.reply({
+        text: {
+            body: "Thank you for contacting us.\n\nHope we were able to handle your query satisfactorily today.\n\nFeel free to reach out to us for any assistance. This chat is closed now"
+        }
+    });
+    return $.session.close(); // close the chat session
+}
